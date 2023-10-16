@@ -1,10 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 
+import Login from './components/auth/Login';
+import SignIn from './components/auth/SignIn';
+import HomeChofer from './components/chofer/Home';
+import HomeChecador from './components/checador/Home';
+
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+      <HomeChecador></HomeChecador>
       <StatusBar style="auto" />
     </View>
   );
