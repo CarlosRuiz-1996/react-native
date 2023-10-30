@@ -1,4 +1,4 @@
-import react from "react";
+import react, { useState } from "react";
 import {
   StyleSheet,
   Pressable,
@@ -6,16 +6,52 @@ import {
   View,
   TextInput,
   Image,
+  TouchableOpacity,
 } from "react-native";
 const logo = require("../../assets/utils/logo.png");
+import axios from "axios";
+// import { AsyncStorage } from "react-native"; // Importa AsyncStorage para el almacenamiento
+import AsyncStorage from "@react-native-async-storage/async-storage";
+export default function Login({ navigation }) {
+  const baseUrl = "http://localhost:4000/api/login";
+  const navigateToSignIn = () => {
+    // Navega a la pantalla 'Login'
+    navigation.navigate("SignIn");
+  };
+  //estado para poder cambiar de color un link hover
+  const [isHovered, setIsHovered] = useState(false);
 
-export default function Login() {
+  //datos para loguear
+  const [usuario, setUsuario] = useState("");
+  const [password, setPassword] = useState("");
+  const params = { usuario: usuario, password: password };
 
-    const pickImageAsync = async () => {
-       
-          alert("Ingresando");
-        
-      };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await axios
+      .post(baseUrl, params)
+      .then(({ data }) => {
+        return data;
+      })
+      .then((data) => {
+        // console.log(data)
+        storeData(data);
+        navigation.navigate("Inicio");
+      })
+      .catch(({ response }) => {
+        alert(response.data.msj, "error");
+      });
+  };
+
+  const storeData = async (value) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem("my-key", jsonValue);
+    } catch (e) {
+      console.log("no se guardo la session");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.Center}>
@@ -24,17 +60,40 @@ export default function Login() {
         <Text style={styles.subtitle}>Ingresa sesion con tu cuenta</Text>
       </View>
       <View style={styles.inputsText}>
-        <TextInput style={styles.text} placeholder="Correo" />
-        <TextInput style={styles.text} placeholder="Contraseña" />
+        <TextInput
+          style={styles.text}
+          placeholder="Correo"
+          value={usuario}
+          onChangeText={(text) => setUsuario(text)}
+        />
+        <TextInput
+          style={styles.text}
+          placeholder="Contraseña"
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+        />
       </View>
 
       <View style={styles.buttonContainer}>
-      <Pressable style={styles.button} onPress={pickImageAsync} >
+        <Pressable style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonLabel}>Ingresar</Text>
+        </Pressable>
 
-        <Text style={styles.buttonLabel}>Ingresar</Text>
-      </Pressable>
-    </View>
-
+        <TouchableOpacity
+          onPress={navigateToSignIn}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Text
+            style={{
+              color: isHovered ? "blue" : "gray", // Cambia el color cuando está en hover
+              marginTop: 10,
+            }}
+          >
+            Ya tengo una cuenta
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -45,6 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f1f1",
     //
     justifyContent: "center",
+    
   },
 
   image: {
@@ -78,10 +138,10 @@ const styles = StyleSheet.create({
   Center: {
     alignItems: "center",
   },
-  button:{
-    width:'80%',
-    height:50,
-    backgroundColor:'blue',
+  button: {
+    width: "80%",
+    height: 50,
+    backgroundColor: "blue",
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -89,10 +149,11 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: 320,
     height: 68,
-    marginHorizontal: 20,
+    marginHorizontal: 120,
     alignItems: "center",
     justifyContent: "center",
     padding: 3,
+    margin: 40,
   },
   buttonLabel: {
     color: "white",

@@ -1,13 +1,21 @@
-import react from "react";
-import { StyleSheet, Text, View, TextInput, Image, Pressable } from "react-native";
+import react, {useState} from "react";
+import { StyleSheet, Text,TouchableOpacity, View, TextInput, Image, Pressable } from "react-native";
 const logo = require("../../assets/utils/logo.png");
 
-export default function SignIn() {
+export default function SignIn({navigation}) {
     const pickImageAsync = async () => {
        
         alert("Ingresando");
       
     };
+
+    const navigateToLogin = () => {
+      // Navega a la pantalla 'Login'
+      navigation.navigate('Login');
+    };
+
+    const [isHovered, setIsHovered] = useState(false);
+
   return (
     <View style={styles.container}>
       <View style={styles.Center}>
@@ -30,6 +38,15 @@ export default function SignIn() {
 
         <Text style={styles.buttonLabel}>Ingresar</Text>
       </Pressable>
+      <TouchableOpacity onPress={navigateToLogin}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      >
+        <Text style={{
+              color: isHovered ? "blue" : "gray", // Cambia el color cuando está en hover
+              marginTop: 10,
+            }}>Ir a la página de inicio de sesión</Text>
+      </TouchableOpacity>
     </View>
     </View>
   );
@@ -85,14 +102,17 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: 320,
     height: 68,
-    marginHorizontal: 20,
+    marginHorizontal: 120,
     alignItems: "center",
     justifyContent: "center",
     padding: 3,
+    margin:40
+
   },
   buttonLabel: {
     color: "white",
     fontSize: 20,
     fontWeight: "bold",
   },
+  
 });
