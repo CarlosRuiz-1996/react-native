@@ -3,22 +3,80 @@ import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeChofer from "../components/chofer/Home";
+import Incidecias from "../components/chofer/Incidencias";
+import CrearIncidencia from "../components/chofer/CrearIncidencia";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import HomeChecador from "../components/checador/Home";
 import Settings from "../components/Settings";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+const Stack = createNativeStackNavigator();
 
 const Tab = createBottomTabNavigator();
+
+
+const HomeIncidenciasStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="ListarIncidencia" component={Incidecias}  options={{
+            title: 'Mis incidencias',
+            // headerStyle: {
+            //   backgroundColor: '#f4511e',
+            // },
+            // headerTintColor: '#fff',
+            headerShown: false
+          }} />
+      <Stack.Screen name="CrearIncidencia" component={CrearIncidencia}  options={{
+            title: 'Crear Incidencia',
+            // headerStyle: {
+            //   backgroundColor: '#f4511e',
+            // },
+            // headerTintColor: '#fff',
+            // headerShown: false
+          }} />
+    </Stack.Navigator>
+  );
+};
 
 
 
 function Chofer() {
   return (
-    <Tab.Navigator  initialRouteName="Home"
-    activeColor="#f0edf6"
-    inactiveColor="#3e2465"
-    barStyle={{ backgroundColor: '#694fad' }}>
-      <Tab.Screen name="Inicio" component={HomeChofer} />
-      <Tab.Screen name="Settings"  component={Settings} />
+    <Tab.Navigator
+      initialRouteName="Inicio"
+      activeColor="#f0edf6"
+      inactiveColor="#3e2465"
+      barStyle={{ backgroundColor: "#694fad" }}
+    >
+      <Tab.Screen name="Inicio" component={HomeChofer}
+       options={{
+        tabBarLabel: 'Inicio',
+        tabBarIcon: ({ color }) => (
+          <MaterialCommunityIcons name="home" color={color} size={26} />
+        ),
+
+      }}
+      />
+      <Tab.Screen name="Incidencias" component={HomeIncidenciasStack}
+      options={{
+        tabBarLabel: 'Incidencias',
+        tabBarIcon: ({ color }) => (
+          <MaterialCommunityIcons name="file-document-outline" color={color} size={26} />
+        ),            
+
+      }}
+      />
+
+      <Tab.Screen name="Cuenta" component={Settings} 
+      options={{
+        tabBarLabel: 'Cuenta',
+        tabBarIcon: ({ color }) => (
+          <MaterialCommunityIcons name="account-settings" color={color} size={26} />
+        ),
+      }}
+      />
     </Tab.Navigator>
   );
 }
@@ -26,6 +84,7 @@ function Checador() {
   return (
     <Tab.Navigator>
       <Tab.Screen name="Inicio" component={HomeChecador} />
+
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
   );
@@ -56,7 +115,9 @@ export default function Inicio() {
       ) : rol === 2 ? (
         <Checador />
       ) : (
-        <View style={{flex: 1, alignContent:"center", justifyContent: "center"      }}>
+        <View
+          style={{ flex: 1, alignContent: "center", justifyContent: "center" }}
+        >
           <Text>Bienvenido.</Text>
           <Text>Solo puedes entrar desde el navegador.</Text>
         </View>

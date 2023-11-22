@@ -10,14 +10,10 @@ import {
   ScrollView,
   Button,
 } from "react-native";
-import { Card, ListItem } from "react-native-elements";
+import { ListItem } from "react-native-elements";
 import generateQRCode from "../utils/generateQRCode";
 import deleteQr from "../utils/deleteQR";
-const data = [
-  { id: 1, title: "Carlos Ruiz", description: "Crafter 2023, JHVB-45-K" },
-  // { id: 2, title: "Elemento 2", description: "Descripción del elemento 2" },
-  // Agrega más elementos aquí
-];
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import scoketUrl from "../../api/urlSocket";
 import io from "socket.io-client";
@@ -152,78 +148,80 @@ export default function HomeChofer() {
   };
 
   return (
-    <View style={styles.container}>
-      {showQR ? (
-        <>
-          <Pressable style={styles.button_red} onPress={destroyQRCode}>
-            <Text style={styles.buttonText}>Desactivar</Text>
+    <ScrollView>
+      <View style={styles.container}>
+        {showQR ? (
+          <>
+            <Pressable style={styles.button_red} onPress={destroyQRCode}>
+              <Text style={styles.buttonText}>Desactivar</Text>
+            </Pressable>
+          </>
+        ) : (
+          <Pressable style={styles.button} onPress={generateQR}>
+            <Text style={styles.buttonText}>Activar</Text>
           </Pressable>
-        </>
-      ) : (
-        <Pressable style={styles.button} onPress={generateQR}>
-          <Text style={styles.buttonText}>Activar</Text>
-        </Pressable>
-      )}
-      <ScrollView>
-        {cardData.map((data, index) => (
-          <ListItem key={index} bottomDivider>
-            {/* <Avatar
+        )}
+        <ScrollView>
+          {cardData.map((data, index) => (
+            <ListItem key={index} bottomDivider>
+              {/* <Avatar
             source={{ uri: data.avatarUrl }} // URL de la imagen de perfil del usuario
             size="medium"
           /> */}
-            <ListItem.Content>
-              <ListItem.Title>{data.title}</ListItem.Title>
-              <ListItem.Subtitle>{data.value}</ListItem.Subtitle>
-            </ListItem.Content>
-          </ListItem>
-        ))}
-      </ScrollView>
-      <View style={{ marginTop: 10 }}>
-        {/* {showQR && <QRCode value="http://awesome.link.qr" />} */}
-      </View>
-      <View style={styles.container2}>
-        {castigo == 1 && <Text style={styles.castigoText}>CASTIGADO</Text>}
+              <ListItem.Content>
+                <ListItem.Title>{data.title}</ListItem.Title>
+                <ListItem.Subtitle>{data.value}</ListItem.Subtitle>
+              </ListItem.Content>
+            </ListItem>
+          ))}
+        </ScrollView>
+        <View style={{ marginTop: 10 }}>
+          {/* {showQR && <QRCode value="http://awesome.link.qr" />} */}
+        </View>
+        <View style={styles.container2}>
+          {castigo == 1 && <Text style={styles.castigoText}>CASTIGADO</Text>}
 
-        {showQR && (
-          <View style={styles.qrCodeContainer}>
-            <View style={styles.qrCode}>
-              <View style={styles.qrCodeContent}>
-                <View style={styles.qrCodeWrapper}>
-                  <View style={styles.qrCodeInner}>
-                    <Text style={styles.qrCodeText}>
-                      <QRCode value={JSON.stringify(json)} />
-                    </Text>
+          {showQR && (
+            <View style={styles.qrCodeContainer}>
+              <View style={styles.qrCode}>
+                <View style={styles.qrCodeContent}>
+                  <View style={styles.qrCodeWrapper}>
+                    <View style={styles.qrCodeInner}>
+                      <Text style={styles.qrCodeText}>
+                        <QRCode value={JSON.stringify(json)} />
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {!savedQRCode && (
-          <Text style={styles.generateQRText}>
-            Activate para Generar tu codigo QR
-          </Text>
-        )}
-      </View>
-      <Modal animationType="slide" transparent={true} visible={modalVisible}>
-        <View style={styles.modalContent}>
-          <View style={styles.titleContainer}>
-            <View>
-              {selectedItem && (
-                <View>
-                  <Text>{selectedItem.title}</Text>
-                  <Text>{selectedItem.description}</Text>
-                  <Pressable onPress={closeModal}>
-                    <Text>Cerrar</Text>
-                  </Pressable>
-                </View>
-              )}
+          {!savedQRCode && (
+            <Text style={styles.generateQRText}>
+              Activate para Generar tu codigo QR
+            </Text>
+          )}
+        </View>
+        <Modal animationType="slide" transparent={true} visible={modalVisible}>
+          <View style={styles.modalContent}>
+            <View style={styles.titleContainer}>
+              <View>
+                {selectedItem && (
+                  <View>
+                    <Text>{selectedItem.title}</Text>
+                    <Text>{selectedItem.description}</Text>
+                    <Pressable onPress={closeModal}>
+                      <Text>Cerrar</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -232,15 +230,16 @@ const styles = StyleSheet.create({
     // flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    boxShadow: {
-      shadowColor: "black",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-    },
+    // boxShadow: {
+    //   shadowColor: "black",
+    //   shadowOffset: {
+    //     width: 0,
+    //     height: 2,
+    //   },
+    //   shadowOpacity: 0.2,
+    //   shadowRadius: 4,
+    // },
+    marginTop: 10,
   },
   button: {
     backgroundColor: "#007BFF",
