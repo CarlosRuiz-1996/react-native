@@ -1,130 +1,195 @@
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  FlatList,
   Image,
-  TouchableOpacity,
+  FlatList,
   StyleSheet,
-  Button,
+  Pressable,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { Camera, CameraType } from "expo-camera";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import QRCodeScanner from "./QRCodeScanner";
+import DatosDiaChecador from "./DatosDiaChecador";
+import axios from "axios";
+import apiUrl from "../../api/api";
 import scoketUrl from "../../api/urlSocket";
 import io from "socket.io-client";
 const socket = io(scoketUrl);
 
-export default function HomeChecador() {
+const HomeChecador = () => {
+  const [foto, setFoto] = useState([]);
   const [usuario, setUsuario] = useState([]);
+  const urlPunto = apiUrl + "checador/chequeo/";
+  const [punto, setPunto] = useState("");
+
+  const getImg = async () => {
+    const imgUrl = apiUrl + "perfil/images/" + 1;
+
+    try {
+      const img = await axios.get(imgUrl);
+      setFoto(img.data);
+    } catch (error) {
+      console.error("Error fetching image:", error);
+    }
+  };
+
+  const getData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("my-key");
+      var key = JSON.parse(jsonValue);
+      jsonValue != null ? JSON.parse(jsonValue) : null;
+      getUsuario(key.dataAll.id_usuario);
+    } catch (e) {
+      console.log("error");
+    }
+  };
+  const getUsuario = async (user) => {
+    const resPunto = await axios.get(urlPunto + user);
+
+    setPunto(resPunto.data != "" ? resPunto.data.nombre : "SIN RUTA ASIGNADA");
+  };
 
   useEffect(() => {
+    getData();
     socket.emit("client:ListarRuta");
     socket.on("server:ListarRuta", (data) => {
-      console.log(data);
       setUsuario(data);
     });
+
+    socket.on("server:updateRuta", () => {
+      socket.emit("client:ListarRuta");
+    });
+    getImg();
   }, []);
-  // funciones para camara:
-  const [type, setType] = useState(CameraType.back);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
 
-  if (!permission) {
-    // Camera permissions are still loading
-    return <View />;
-  }
+  const getImageUrl = (userId, photos) => {
+    const photo = photos.find((photo) => photo.startsWith(`${userId}-`));
+    if (photo) {
+      return scoketUrl + "/" + photo;
+    }
+    return null;
+  };
 
-  if (!permission.granted) {
-    // Camera permissions are not granted yet
+  const renderItem = ({ item }) => {
+    const imageUrl = getImageUrl(item.id_usuario, foto);
     return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: "center" }}>
-          We need your permission to show the camera
-        </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+      <View style={styles.item}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Image
+            source={
+              imageUrl
+                ? { uri: imageUrl }
+                : require("../../assets/utils/user.png")
+            }
+            style={{ width: 40, height: 40, borderRadius: 20, marginRight: 16 }}
+          />
+          <Text>{item.nombre_completo}</Text>
+        </View>
+        <Text>PLACAS: {item.placas}</Text>
+        <Text>MODELO: {item.modelo}</Text>
+        <Text>NO.ECONOMICO: {item.no_economico}</Text>
+        <Text>DESTINO: {item.destino}</Text>
       </View>
     );
-  }
+  };
 
-  function toggleCameraType() {
-    setType((current) =>
-      current === CameraType.back ? CameraType.front : CameraType.back
-    );
-  }
+  //modal de scanner
 
+  const [isScannerOpen, setScannerOpen] = useState(false);
+
+  const openScanner = () => {
+    setScannerOpen(true);
+  };
+
+  const closeScanner = () => {
+    setScannerOpen(false);
+  };
   return (
-    <View style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Camera style={styles.camera} type={type}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-              <Text style={styles.text}>Flip Camera</Text>
-            </TouchableOpacity>
-          </View>
-        </Camera>
+    <View style={styles.container}>
+      <View>
+        {/* <Text>Presiona para abrir el escáner:</Text> */}
+        <Pressable style={styles.button} onPress={openScanner}>
+          <Text style={styles.buttonText}>ESCÁNER QR</Text>
+        </Pressable>
+
+        <QRCodeScanner
+          isOpen={isScannerOpen}
+          onClose={closeScanner}
+          punto={punto}
+        />
       </View>
 
-      <Text style={{ textAlign: "center", fontSize: 20 }}>
-        CONDUCTORES QUE ESTÁN EN VIAJE
-      </Text>
+      <DatosDiaChecador punto={punto} />
+
+      <Text>Unidades en ruta</Text>
       <FlatList
         data={usuario}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View
-            style={{
-              borderBottomWidth: 1,
-              borderColor: "#4a6473",
-              padding: 10,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  marginRight: 10,
-                }}
-              />
-              <Text>{item.nombre_completo}</Text>
-            </View>
-            <View style={{ flexDirection: "row" }}>
-              <Text style={{ flex: 1 }}>PLACAS: {item.placas}</Text>
-              <Text style={{ flex: 1 }}>MODELO: {item.modelo}</Text>
-            </View>
-            <View style={{ flexDirection: "row" }}>
-              <Text style={{ flex: 1 }}>NO.ECONÓMICO: {item.no_economico}</Text>
-              <Text style={{ flex: 1 }}>DESTINO: {item.destino}</Text>
-            </View>
-          </View>
-        )}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id_usuario.toString()}
+        showsVerticalScrollIndicator={false}
       />
+      <View style={styles.container}>
+        <Text>{usuario ? "NO HAY UNIDADES EN RUTA" : ""}</Text>
+      </View>
     </View>
   );
-}
+};
+
+export default HomeChecador;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: "#f1f1f1",
+    //
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
   },
-  camera: {
-    flex: 1,
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  buttonContainer: {
+
+  input: {
     flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
+    height: 40,
+    borderColor: "gray",
+    backgroundColor: "white",
+    borderWidth: 1,
+    marginBottom: 8,
+    paddingLeft: 8,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 5,
+  },
+  item: {
+    backgroundColor: "#fff",
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignSelf: "flex-start",
+  },
+  itemText: {
+    fontSize: 16,
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
   },
   button: {
-    flex: 1,
-    alignSelf: 'flex-end',
-    alignItems: 'center',
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
+  buttonText: {
+    color: "white",
+    fontSize: 16,
   },
 });

@@ -8,12 +8,14 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import apiUrl from "../../api/api";
+
+
 const logo = require("../../assets/utils/logo.png");
 import axios from "axios";
 // import { AsyncStorage } from "react-native"; // Importa AsyncStorage para el almacenamiento
 import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function Login({ navigation }) {
-  const baseUrl = "http://localhost:4000/api/login";
   const navigateToSignIn = () => {
     // Navega a la pantalla 'Login'
     navigation.navigate("SignIn");
@@ -25,22 +27,40 @@ export default function Login({ navigation }) {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const params = { usuario: usuario, password: password };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const response = await axios.post(baseUrl, params);
+  //     const data = response.data;
+  //     console.log("Respuesta exitosa:", data);
+  //     storeData(data);
+  //     navigation.navigate("Inicio");
+  //   } catch (error) {
+  //     console.error("Error en la solicitud:", error);
+  //     alert(error.response.data.msj || "Ha ocurrido un error");
+  //   }
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios
-      .post(baseUrl, params)
-      .then(({ data }) => {
-        return data;
-      })
-      .then((data) => {
-        // console.log(data)
-        storeData(data);
-        navigation.navigate("Inicio");
-      })
-      .catch(({ response }) => {
-        alert(response.data.msj, "error");
-      });
+    try {
+      await axios
+        .post(apiUrl+'login', params)
+        .then(({ data }) => {
+          return data;
+        })
+        .then((data) => {
+          // console.log(data)
+          storeData(data);
+          navigation.navigate("SplashScreen");
+        })
+        .catch(({ response }) => {
+          alert(response.data.msj, "error");
+        });
+    } catch (error) {
+      console.error("Error en la solicitud:"+error);
+      alert("Ha ocurrido un error");
+    }
   };
 
   const storeData = async (value) => {
@@ -104,7 +124,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f1f1",
     //
     justifyContent: "center",
-    
   },
 
   image: {
@@ -149,7 +168,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: 320,
     height: 68,
-    marginHorizontal: 120,
+    // marginHorizontal: 120,
     alignItems: "center",
     justifyContent: "center",
     padding: 3,

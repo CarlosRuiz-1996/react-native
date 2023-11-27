@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import QRCode from "react-native-qrcode-svg";
+
+let logoFromFile = require("../../assets/utils/logo.png");
+
 import {
   StyleSheet,
-  FlatList,
   Modal,
   View,
   Pressable,
   Text,
   ScrollView,
-  Button,
+  FlatList,
 } from "react-native";
 import { ListItem } from "react-native-elements";
 import generateQRCode from "../utils/generateQRCode";
@@ -38,7 +40,7 @@ export default function HomeChofer() {
         setId(key.dataAll.id_usuario);
         socket.emit("client:getChofer", key.dataAll.id_usuario);
         socket.on("server:getChofer", (data) => {
-          console.log(data);
+          // console.log(data);
           setUsuario(data[0]);
           setCastigo(data[0].castigo);
         });
@@ -58,6 +60,7 @@ export default function HomeChofer() {
     socket.emit("client:getEstimado", id);
     socket.on("server:getEstimado", (data) => {
       setEstimado(data[0]);
+      // console.log('getEstimado'+data[0]);
     });
 
     socket.on("server:DesactivarChofer", async (data) => {
@@ -110,6 +113,8 @@ export default function HomeChofer() {
     deleteQr(id, setSavedQRCode);
     setShowQR(false);
   };
+  // console.log('estimado'+estimado.estimado);
+  // console.log('estimado'+estimado.estimado);
 
   const cardData = [
     // { title: "Tiempo:", value: "30 min" },
@@ -133,22 +138,16 @@ export default function HomeChofer() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const openModal = (item) => {
-    setSelectedItem(item);
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setSelectedItem(null);
-    setModalVisible(false);
-  };
-
   const closeQRCode = () => {
     setShowQR(false);
   };
-
+  const renderItem = ({ item }) => (
+    <View style={styles.item}>
+      <Text style={styles.itemText}>{item.title + item.value}</Text>
+    </View>
+  );
   return (
-    <ScrollView>
+    // <ScrollView>
       <View style={styles.container}>
         {showQR ? (
           <>
@@ -161,20 +160,13 @@ export default function HomeChofer() {
             <Text style={styles.buttonText}>Activar</Text>
           </Pressable>
         )}
-        <ScrollView>
-          {cardData.map((data, index) => (
-            <ListItem key={index} bottomDivider>
-              {/* <Avatar
-            source={{ uri: data.avatarUrl }} // URL de la imagen de perfil del usuario
-            size="medium"
-          /> */}
-              <ListItem.Content>
-                <ListItem.Title>{data.title}</ListItem.Title>
-                <ListItem.Subtitle>{data.value}</ListItem.Subtitle>
-              </ListItem.Content>
-            </ListItem>
-          ))}
-        </ScrollView>
+
+        <FlatList
+          data={cardData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index}
+        />
+
         <View style={{ marginTop: 10 }}>
           {/* {showQR && <QRCode value="http://awesome.link.qr" />} */}
         </View>
@@ -182,18 +174,13 @@ export default function HomeChofer() {
           {castigo == 1 && <Text style={styles.castigoText}>CASTIGADO</Text>}
 
           {showQR && (
-            <View style={styles.qrCodeContainer}>
-              <View style={styles.qrCode}>
-                <View style={styles.qrCodeContent}>
-                  <View style={styles.qrCodeWrapper}>
-                    <View style={styles.qrCodeInner}>
-                      <Text style={styles.qrCodeText}>
-                        <QRCode value={JSON.stringify(json)} />
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
+            <View style={styles.qrCode}>
+              <QRCode
+                size={200}
+                logo={logoFromFile}
+                logoSize={40}
+                value={JSON.stringify(json)}
+              />
             </View>
           )}
 
@@ -203,42 +190,15 @@ export default function HomeChofer() {
             </Text>
           )}
         </View>
-        <Modal animationType="slide" transparent={true} visible={modalVisible}>
-          <View style={styles.modalContent}>
-            <View style={styles.titleContainer}>
-              <View>
-                {selectedItem && (
-                  <View>
-                    <Text>{selectedItem.title}</Text>
-                    <Text>{selectedItem.description}</Text>
-                    <Pressable onPress={closeModal}>
-                      <Text>Cerrar</Text>
-                    </Pressable>
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-        </Modal>
       </View>
-    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    // boxShadow: {
-    //   shadowColor: "black",
-    //   shadowOffset: {
-    //     width: 0,
-    //     height: 2,
-    //   },
-    //   shadowOpacity: 0.2,
-    //   shadowRadius: 4,
-    // },
+
     marginTop: 10,
   },
   button: {
@@ -289,119 +249,39 @@ const styles = StyleSheet.create({
   container2: {
     padding: 5,
     borderWidth: 1,
-    backgroundColor: "lightgray",
+    backgroundColor: "lightskyblue",
   },
   castigoText: {
     fontSize: 24,
   },
-  qrCodeContainer: {
-    alignItems: "center",
-    marginBottom: 12,
-  },
+
   qrCode: {
     backgroundColor: "white",
-    padding: 5,
     borderWidth: 4,
     borderRadius: 10,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 2 },
+    // shadowColor: "blue",
+    // shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
+    // boxShadow: "0px 2px 0.2 rgba(0, 0, 0, 0.2)",
     padding: 12,
+    width: 230,
+    height: 230,
   },
-  qrCodeContent: {
-    flexDirection: "row",
-  },
-  qrCodeWrapper: {
-    flex: 1,
-    // marginRight: 12,
-  },
-  qrCodeInner: {
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  qrCodeText: {
-    fontSize: 20,
-  },
+
   generateQRText: {
     fontSize: 16,
   },
+
+  item: {
+    backgroundColor: "#fff",
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  itemText: {
+    fontSize: 16,
+  },
 });
-
-// socket.emit("client:getChofer", id);
-// socket.on("server:getChofer", (data) => {
-//   console.log(data[0]);
-//   setUsuario(data[0]);
-//   setCastigo(data[0].castigo);
-// });
-// socket.on("server:updateDatos", async (data) => {
-//   if (data == id) {
-//     const result = await axios.get(apiUrl + "chofer/chofer/" + id);
-//     deleteQr(id, setSavedQRCode, 1);
-//     setJson({
-//       usuario: id,
-//       hora: now,
-//       modelo: result.data[0].modelo,
-//       placas: result.data[0].placas,
-//       economico: result.data[0].no_economico,
-//       nombre: result.data[0].nombre_completo,
-//       ruta: result.data[0].ruta,
-//       destino: result.data[0].destino,
-//       id_ruta: result.data[0].id_ruta,
-//       castigado: result.data[0].castigo,
-//     });
-//     setCastigo(result.data[0].castigo);
-//     generateQRCode(id, setSavedQRCode, json, 1);
-//   }
-// });
-// //datos de los card
-// socket.emit("client:getEstimado", id);
-// socket.on("server:getEstimado", (data) => {
-//   setEstimado(data[0]);
-// });
-// socket.on("server:updateRuta", () => {
-//   socket.emit("client:getEstimado", id);
-// });
-// socket.on("server:updatepdateCastigosAdmin", () => {
-//   rehacerQr();
-// });
-// socket.on("server:updateIncidencia", () => {
-//   rehacerQr();
-// });
-// //escucho a los sockets.
-// // console.log(usuario)
-
-// socket.on("server:DesactivarChofer", async (data) => {
-//   if (data.id_usuario == id) {
-//     if (data.opcion == 1) {
-//       deleteQr(data.id_usuario, setSavedQRCode);
-//     } else {
-//       const result = await axios.get(apiUrl + "chofer/chofer/" + id);
-//       // deleteQr(1, setSavedQRCode, 1);
-//       setJson({
-//         usuario: id,
-//         hora: now,
-//         modelo: result.data[0].modelo,
-//         placas: result.data[0].placas,
-//         economico: result.data[0].no_economico,
-//         nombre: result.data[0].nombre_completo,
-//         ruta: result.data[0].ruta,
-//         destino: result.data[0].destino,
-//         id_ruta: result.data[0].id_ruta,
-//         castigado: result.data[0].castigo,
-//       });
-//       setCastigo(result.data[0].castigo);
-//       generateQRCode(id, setSavedQRCode, json);
-//     }
-//   }
-// });
-// //obtener horas laboradas
-// socket.emit("client:getHoras", id);
-// socket.on("server:getHoras", (data) => {
-//   setHora(data[0]);
-//   // console.log(data[0]);
-// });
-// // Limpia el evento del socket al desmontar el componente
-// return () => {
-//   socket.off("server:getChofer");
-//   socket.off("server:updateDatos");
-// };

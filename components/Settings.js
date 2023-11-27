@@ -1,7 +1,8 @@
 
-import { StyleSheet, View, Text, Button } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native';
+import Perfil from "./auth/Perfil";
 
 
 export default function SettingsScreen() {
@@ -22,9 +23,27 @@ export default function SettingsScreen() {
 
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Configuración!</Text>
+        {/* <Text>Configuración!</Text> */}
         
-        <Button onPress={handleLogout} title="Cerrar Sesión"/>
+        <Perfil/>
+        <Pressable onPress={handleLogout} style={styles.button}>
+          <Text style={styles.buttonText}>Cerrar Sesión</Text>
+          </Pressable>
       </View>
     );
   }
+
+
+  
+const styles = StyleSheet.create({
+
+ button: {
+   backgroundColor: "#007BFF",
+   padding: 10,
+   borderRadius: 5,
+ },
+ buttonText: {
+   color: "white",
+   fontSize: 16,
+ },
+});

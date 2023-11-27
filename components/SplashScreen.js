@@ -7,24 +7,24 @@ const logo = require("../assets/utils/logo.png");
 const SplashScreen = ({ navigation }) => {
   //   const { navigate } = useNavigation();
   const [loading, setLoading] = useState(true);
-
+const [user,setUser]= useState();
   useEffect(() => {
     const timer = setTimeout(() => {
       checkSession();
-    }, 2000); // Redirigir después de 2 segundos (puedes ajustar el tiempo)
+    }, 1000); // Redirigir después de 2 segundos (puedes ajustar el tiempo)
 
     // Limpia el temporizador si el componente se desmonta
     return () => clearTimeout(timer);
   }, []);
-
+  
   const checkSession = async () => {
-    try {
+    try { 
       const jsonValue = await AsyncStorage.getItem("my-key");
       const userData = JSON.parse(jsonValue);
       if (userData && userData.token) {
         // Usuario ya ha iniciado sesión, redirigir a la página de inicio
         setLoading(false);
-
+        // setUser(userData);
         navigation.navigate("Inicio");
       } else {
         // Usuario no ha iniciado sesión, redirigir a la pantalla de inicio de sesión

@@ -6,10 +6,12 @@ import {
   Button,
   ScrollView,
   Image,
-  Picker,
+  // Picker,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import apiUrl from "../../api/api";
@@ -102,47 +104,69 @@ export default function CrearIncidencia() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedOption) {
-      setErrIns(true);
-    }
-
-    if (!desc) {
-      setErrDesc(true);
-    }
-
-    if (selectedImages.length === 0) {
-      setErrImg(true);
-    }
-
-    if (!selectedOption || !desc || selectedImages.length === 0) {
-      return;
-    }
-
     try {
+      if (!selectedOption) {
+        setErrIns(true);
+      }
+
+      if (!desc) {
+        setErrDesc(true);
+      }
+
+      if (selectedImages.length === 0) {
+        setErrImg(true);
+      }
+
+      if (!selectedOption || !desc || selectedImages.length === 0) {
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("id_chofer", user.id_usuario);
-      formData.append("incidencia", selectedOption.id);
+      formData.append("id_chofer", user);
+      formData.append("incidencia", selectedOption);
       formData.append("id_ruta", idruta !== 0 ? idruta : 0);
       formData.append("descripcion", desc);
       selectedImages.forEach((image, index) => {
-        formData.append(`imagen${index}`, {
+        formData.append("imagen", {
           uri: image.uri,
-          type: "image/jpeg", // Ajusta según el tipo de imagen que estés utilizando
-          name: `imagen${index}.jpg`,
         });
       });
+      // axios({
+      //   method: "POST",
+      //   url: apiUrl + "chofer/incidencias/",
+      //   data: formData,
+      //   headers: {
+      //     "Content-Type": "multipart/form-data",
+      //   },
+      // }).then(function (respuesta) {
+      //   console.log(respuesta);
+      //   // var tipo = respuesta.data.tipo;
+      //   // var msj = respuesta.data.msj;
+      //   // console.log(respuesta);
+      // });
+    
+      try {
+        await axios
+          .post(apiUrl+"chofer/incidencias/",  formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          .then(({ data }) => {
+            return data;
+          })
+          .then((data) => {
+            console.log(data)
+          
+          })
+          .catch(({ response }) => {
+            alert("errorssssss");
+          });
+      } catch (error) {
+        console.error("Error en la solicitud:"+error);
+        alert("Ha ocurrido un error");
+      }
 
-      const response = await axios.post(
-        `${apiUrl}chofer/incidencias/`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log(response.data);
       // Resto de la lógica de respuesta
     } catch (error) {
       console.error("Error al enviar la incidencia:", error);
@@ -155,90 +179,77 @@ export default function CrearIncidencia() {
   };
   return (
     <ScrollView>
-
-    <View style={styles.container}>
+      <View style={styles.container}>
         <View>
-          <View style={styles.inputsText}>
-            <Text>Tipo de Incidencia:</Text>
+          <Text>Tipo de Incidencia:</Text>
 
-            <Picker
-              style={styles.Picker}
-              selectedValue={selectedOption}
-              onValueChange={(value) => handleOptionChange(value)}
-            >
-              {options.map((option) => (
-                <Picker.Item
-                  key={option.id}
-                  label={option.name}
-                  value={option}
-                />
-              ))}
-            </Picker>
-            {errIns && <Text style={{ color: "red" }}>Campo requerido</Text>}
+          <Picker
+            style={styles.Picker}
+            selectedValue={selectedOption}
+            onValueChange={(value) => handleOptionChange(value)}
+          >
+            {options.map((option) => (
+              <Picker.Item
+                key={option.id}
+                label={option.name}
+                value={option.id}
+              />
+            ))}
+          </Picker>
+          {errIns && <Text style={{ color: "red" }}>Campo requerido</Text>}
 
-            <Text>Descripción:</Text>
-            {/* Área de texto para la descripción */}
-            <TextInput
-              style={styles.TextInput}
-              multiline
-              numberOfLines={4}
-              value={desc}
-              onChangeText={handleDescChange}
-            />
-            {errDesc && <Text style={{ color: "red" }}>Campo requerido</Text>}
+          <Text>Descripción:</Text>
+          {/* Área de texto para la descripción */}
+          <TextInput
+            style={styles.TextInput}
+            multiline
+            numberOfLines={3}
+            value={desc}
+            onChangeText={handleDescChange}
+          />
+          {errDesc && <Text style={{ color: "red" }}>Campo requerido</Text>}
 
-            {/* Botones para seleccionar imagen y tomar foto */}
-            <Button title="Subir Imagen" onPress={handleImagePick} />
-            <Button title="Tomar Foto" onPress={handleTakePhoto} />
-            {errImg && <Text style={{ color: "red" }}>Campo requerido</Text>}
-          </View>
+          {/* Botones para seleccionar imagen y tomar foto */}
+          <Button title="Tomar Foto" onPress={handleTakePhoto} />
+          {errImg && <Text style={{ color: "red" }}>Campo requerido</Text>}
+        </View>
 
-          {/* Mostrar imágenes seleccionadas */}
-          {selectedImages.map((image, index) => (
+        {selectedImages.map((image, index) => (
+          <View key={index}>
             <Image
-              key={index}
               source={{ uri: image.uri }}
               style={{ width: 100, height: 100 }}
             />
-          ))}
-
-          {selectedImages.map((image, index) => (
-            <View key={index}>
-              <Image
-                source={{ uri: image.uri }}
-                style={{ width: 100, height: 100 }}
-              />
-              <TouchableOpacity onPress={() => handleImageDelete(index)}>
-                <Text>Eliminar</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-      
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonLabel}>ACEPTAR</Text>
+            <TouchableOpacity onPress={() => handleImageDelete(index)}>
+              <Text>Eliminar</Text>
             </TouchableOpacity>
           </View>
-        </View>
-    </View>
-    </ScrollView>
+        ))}
 
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonLabel}>ACEPTAR</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#f1f1f1",
-        //
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop:10
-      },
-     
+  container: {
+    flex: 1,
+    backgroundColor: "#f1f1f1",
+    //
+    justifyContent: "center",
+    margin: 50,
+    // padding: 0,
+  },
+
   TextInput: {
     backgroundColor: "white",
     borderRadius: 5,
+    marginBottom: 10,
   },
   Picker: {
     borderWidth: 1,
@@ -251,26 +262,22 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
 
-  inputsText: {
-    margin: 50,
-    padding: 0,
-  },
   button: {
-    width: "80%",
-    height: 50,
+    width: "60%",
+    height: 35,
     backgroundColor: "blue",
-    borderRadius: 10,
+    borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
   },
   buttonContainer: {
     width: 320,
     height: 68,
-    marginHorizontal: 120,
+    // marginHorizontal: 120,
     alignItems: "center",
     justifyContent: "center",
     padding: 3,
-    margin: 40,
+    margin: 5,
   },
   buttonLabel: {
     color: "white",

@@ -5,10 +5,16 @@ import {
   FlatList,
   StyleSheet,
   Button,
-  TextInput,ScrollView
+  Pressable,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
+import moment from 'moment';
+import 'moment/locale/es'; // Importa el idioma español para moment
+// import "moment-timezone";
 
+// import * as RNLocalize from 'react-native-localize';
 const data = [
   { id: "1", name: "Row 1", value: "Value 1" },
   { id: "2", name: "Row 2", value: "Value 2" },
@@ -25,6 +31,7 @@ const socket = io(scoketUrl);
 export default function Incidecias({ navigation }) {
   const [user, setUser] = useState();
   const [incidencias, setIcidencias] = useState([]);
+  // moment.locale(RNLocalize.getLocales()[0].languageCode);
 
   const getData = async () => {
     try {
@@ -40,6 +47,8 @@ export default function Incidecias({ navigation }) {
   const url = apiUrl + "chofer/incidencias/sts/";
 
   useEffect(() => {
+    moment.locale("es");
+
     getData();
   }, []);
 
@@ -49,7 +58,6 @@ export default function Incidecias({ navigation }) {
   };
 
   useEffect(() => {
-
     socket.on("server:updateIncidencia", () => {
       getIncidencias(user);
     });
@@ -73,7 +81,9 @@ export default function Incidecias({ navigation }) {
     <View style={styles.item}>
       <Text
         style={styles.itemText}
-      >{`Incidencia: ${item.incidencia}\nDescripción: ${item.descripcion}\nFecha Alta: ${item.fecha_alta}\nStatus: ${item.status}`}</Text>
+      >{`Incidencia: ${item.incidencia}\nDescripción: ${item.descripcion}Fecha Alta: ${moment(item.fecha_alta).format('dddd, DD [DE] MMMM [DE] YYYY, HH:mm:ss')}\nStatus: ${item.status=== 1?'PENDIENTE':''}    ${item.status=== 0?'RECHAZADO':''}
+      ${item.status=== 2?'ACEPTADO':''}`}
+      </Text>
     </View>
   );
 
@@ -91,81 +101,82 @@ export default function Incidecias({ navigation }) {
   const handleNewIncidence = () => {
     // Aquí puedes realizar cualquier acción relacionada con la creación de una nueva incidencia
     // Por ejemplo, puedes navegar a la pantalla de creación de incidencia
-    navigation.navigate('CrearIncidencia');
+    navigation.navigate("CrearIncidencia");
   };
   return (
-    <ScrollView>
+    // <ScrollView>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TextInput
+            style={styles.input}
+            placeholder="Buscar..."
+            onChangeText={setSearchTerm}
+            value={searchTerm}
+          />
+          <Pressable style={styles.button} onPress={handleNewIncidence}>
+            <Text style={styles.buttonText}>Nueva incidencia</Text>
+          </Pressable>
+        </View>
 
-    <View style={styles.container}>
-      <View style={styles.header}>
+        <FlatList
+          data={paginatedData}
+          renderItem={renderItem}
+          // keyExtractor={(item, index) => index}
+          keyExtractor={(item, index) => index.toString()} // Asegúrate de usar index.toString()
 
-
-        <TextInput
-          style={styles.input}
-          placeholder="Buscar..."
-          onChangeText={setSearchTerm}
-          value={searchTerm}
         />
-        <Button title="Nueva incidencia"  onPress={handleNewIncidence} />
+        <View style={styles.pagination}>
+          {/* <Button title="Prev Page" onPress={handlePrevPage} /> */}
+          <Pressable
+            style={styles.button}
+            onPress={handlePrevPage}
+            disabled={currentPage === 1}
+          >
+            <Text style={styles.buttonText}>Anterior</Text>
+          </Pressable>
 
+          <Text>{`Page ${currentPage}`}</Text>
+          {/* <Button title="Next Page" onPress={handleNextPage} /> */}
+          <Pressable
+            style={styles.button}
+            onPress={handleNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <Text style={styles.buttonText}>Siguiente</Text>
+          </Pressable>
+        </View>
       </View>
-
-
-      <FlatList
-        data={paginatedData}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.descripcion}
-      />
-      <View style={styles.pagination}>
-        {/* <Button title="Prev Page" onPress={handlePrevPage} /> */}
-        <Button
-          title="Anterior"
-          onPress={handlePrevPage}
-          disabled={currentPage === 1}
-        />
-
-        <Text>{`Page ${currentPage}`}</Text>
-        {/* <Button title="Next Page" onPress={handleNextPage} /> */}
-        <Button
-          title="Siguiente"
-          onPress={handleNextPage}
-          disabled={currentPage === totalPages}
-        />
-      </View>
-    </View>
-    </ScrollView>
-
+    // </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-   container: {
+  container: {
     flex: 1,
     backgroundColor: "#f1f1f1",
     //
     justifyContent: "center",
     alignItems: "center",
-    marginTop:10
+    marginTop: 10,
   },
- 
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
- 
+
   input: {
-    flex:1,
+    flex: 1,
     height: 40,
     borderColor: "gray",
-    backgroundColor:'white',
+    backgroundColor: "white",
     borderWidth: 1,
     marginBottom: 8,
     paddingLeft: 8,
-    marginLeft:20,
-    marginRight:20,
+    marginLeft: 20,
+    marginRight: 20,
     borderRadius: 5,
-
   },
   item: {
     backgroundColor: "#fff",
@@ -175,6 +186,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
+    alignSelf: 'flex-start',
+
   },
   itemText: {
     fontSize: 16,
@@ -183,5 +196,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 16,
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
   },
 });
